@@ -1,0 +1,381 @@
+KMS Inventory Table Query
+
+
+--CREATE DATABASE--
+
+CREATE DATABASE KMS_db;
+
+
+--CREATE TABLE--
+
+CREATE TABLE Orders (
+    Row_ID INT,
+    Order_ID NVARCHAR(50),
+    Order_Date DATE,
+    Order_Priority NVARCHAR(50),
+    Order_Quantity INT,
+    Sales FLOAT,
+    Discount FLOAT,
+    Ship_Mode NVARCHAR(50),
+    Profit FLOAT,
+    Unit_Price FLOAT,
+    Shipping_Cost FLOAT,
+    Customer_Name NVARCHAR(100),
+    Province NVARCHAR(50),
+    Region NVARCHAR(50),
+    Customer_Segment NVARCHAR(50),
+    Product_Category NVARCHAR(50),
+    Product_Sub_Category NVARCHAR(100),
+    Product_Name NVARCHAR(255),
+    Product_Container NVARCHAR(50),
+    Product_Base_Margin FLOAT,
+    Ship_Date DATE
+);
+
+
+
+NORMAL QUERY WITH TWO DECIMAL PLACES
+
+
+-- 1. Product category with the highest sales		
+SELECT Product_Category	 	
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales	
+FROM KMS_Inventory_Data		
+GROUP BY Product_Category		
+ORDER BY Total_Sales DESC;		
+		
+-- 2. Top 3 regions by sales		
+SELECT TOP 3 Region	 	
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales	
+FROM KMS_Inventory_Data		
+GROUP BY Region		
+ORDER BY Total_Sales DESC;		
+		
+-- Bottom 3 regions by sales		
+SELECT TOP 3 Region	 	
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales	
+FROM KMS_Inventory_Data		
+GROUP BY Region		
+ORDER BY Total_Sales ASC;		
+		
+-- 3. Total sales of appliances in Ontario		
+SELECT CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales_Appliances_Ontario	
+FROM KMS_Inventory_Data		
+WHERE Province = 'Ontario'		
+  AND Product_Sub_Category = 'Appliances';		
+		
+-- 4. Bottom 10 customers by total sales		
+SELECT TOP 10 Customer_Name	 	
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales	
+FROM KMS_Inventory_Data		
+GROUP BY Customer_Name		
+ORDER BY Total_Sales ASC;		
+		
+-- 5. Shipping method with highest shipping cost		
+SELECT Ship_Mode	 	
+       CAST(SUM(Shipping_Cost) AS DECIMAL(18 2)) AS Total_Shipping_Cost	
+FROM KMS_Inventory_Data		
+GROUP BY Ship_Mode		
+ORDER BY Total_Shipping_Cost DESC;		
+		
+-- 6. Most valuable customers and what they purchase		
+-- 6a. Top 5 customers by sales		
+SELECT TOP 5 Customer_Name	 	
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales	
+FROM KMS_Inventory_Data		
+GROUP BY Customer_Name		
+ORDER BY Total_Sales DESC;		
+		
+-- 6b. Their product category purchases		
+SELECT Customer_Name	 Product_Category	 
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Category_Sales	
+FROM KMS_Inventory_Data		
+WHERE Customer_Name IN (		
+    SELECT TOP 5 Customer_Name		
+    FROM KMS_Inventory_Data		
+    GROUP BY Customer_Name		
+    ORDER BY SUM(Sales) DESC		
+)		
+GROUP BY Customer_Name	Product_Category	
+ORDER BY Customer_Name	 Category_Sales DESC;	
+		
+-- 7. Small Business customer with the highest sales		
+SELECT TOP 1 Customer_Name	 	
+       CAST(SUM(Sales) AS DECIMAL(18 2)) AS Total_Sales	
+FROM KMS_Inventory_Data		
+WHERE Customer_Segment = 'Small Business'		
+GROUP BY Customer_Name		
+ORDER BY Total_Sales DESC;		
+		
+-- 8. Corporate customer with most orders (2009–2012)		
+SELECT TOP 1 Customer_Name	 	
+       COUNT(Order_ID) AS Total_Orders		
+FROM KMS_Inventory_Data		
+WHERE Customer_Segment = 'Corporate'		
+  AND Order_Date BETWEEN '2009-01-01' AND '2012-12-31'		
+GROUP BY Customer_Name		
+ORDER BY Total_Orders DESC;		
+		
+-- 9. Most profitable consumer customer		
+SELECT TOP 1 Customer_Name	 	
+       CAST(SUM(Profit) AS DECIMAL(182)) AS Total_Profit	
+FROM KMS_Inventory_Data		
+WHERE Customer_Segment = 'Consumer'		
+GROUP BY Customer_Name		
+ORDER BY Total_Profit DESC;		
+		
+-- 10. Customers who returned items and their segment		
+-- Requires: A table named Returned_Orders(Order_ID Status)	
+SELECT DISTINCT O.Order_ID O.Customer_Name O.Customer_Segment
+FROM KMS_Inventory_Data O		
+JOIN dbo.Order_Status R		
+    ON O.Order_ID = R.Order_ID		
+WHERE R.Status = 'Returned';		
+		
+-- 11. Average shipping cost by order priority		
+SELECT Order_Priority	 	
+       CAST(AVG(Shipping_Cost) AS DECIMAL(18 2)) AS Avg_Shipping_Cost	
+FROM KMS_Inventory_Data		
+GROUP BY Order_Priority		
+ORDER BY Avg_Shipping_Cost DESC;		
+
+
+
+
+
+QUERY WITH PERCENT AND PRINT
+
+USE KMS_db;
+
+
+-- 1. Product category with the highest sales
+SELECT Product_Category, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Product_Category
+ORDER BY Total_Sales DESC;
+
+-- 2. Top 3 regions by sales
+SELECT TOP 3 Region, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Region
+ORDER BY Total_Sales DESC;
+
+-- Bottom 3 regions by sales
+SELECT TOP 3 Region, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Region
+ORDER BY Total_Sales ASC;
+
+-- 3. Total sales of appliances in Ontario
+SELECT CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales_Appliances_Ontario
+FROM KMS_Inventory_Data
+WHERE Province = 'Ontario'
+  AND Product_Sub_Category = 'Appliances';
+
+-- 4. Bottom 10 customers by total sales
+SELECT TOP 10 Customer_Name, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Customer_Name
+ORDER BY Total_Sales ASC;
+
+-- 5. Shipping method with highest shipping cost
+SELECT Ship_Mode, 
+       CAST(SUM(Shipping_Cost) AS DECIMAL(18,2)) AS Total_Shipping_Cost
+FROM KMS_Inventory_Data
+GROUP BY Ship_Mode
+ORDER BY Total_Shipping_Cost DESC;
+
+-- 6. Most valuable customers and what they purchase
+-- 6a. Top 5 customers by sales
+SELECT TOP 5 Customer_Name, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Customer_Name
+ORDER BY Total_Sales DESC;
+
+-- 6b. Their product category purchases
+SELECT Customer_Name, Product_Category, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Category_Sales
+FROM KMS_Inventory_Data
+WHERE Customer_Name IN (
+    SELECT TOP 5 Customer_Name
+    FROM KMS_Inventory_Data
+    GROUP BY Customer_Name
+    ORDER BY SUM(Sales) DESC
+)
+GROUP BY Customer_Name, Product_Category
+ORDER BY Customer_Name, Category_Sales DESC;
+
+-- 7. Small Business customer with the highest sales
+SELECT TOP 1 Customer_Name, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+WHERE Customer_Segment = 'Small Business'
+GROUP BY Customer_Name
+ORDER BY Total_Sales DESC;
+
+-- 8. Corporate customer with most orders (2009–2012)
+SELECT TOP 1 Customer_Name, 
+       COUNT(Order_ID) AS Total_Orders
+FROM KMS_Inventory_Data
+WHERE Customer_Segment = 'Corporate'
+  AND Order_Date BETWEEN '2009-01-01' AND '2012-12-31'
+GROUP BY Customer_Name
+ORDER BY Total_Orders DESC;
+
+-- 9. Most profitable consumer customer
+SELECT TOP 1 Customer_Name, 
+       CAST(SUM(Profit) AS DECIMAL(18,2)) AS Total_Profit
+FROM KMS_Inventory_Data
+WHERE Customer_Segment = 'Consumer'
+GROUP BY Customer_Name
+ORDER BY Total_Profit DESC;
+
+-- 10. Customers who returned items and their segment
+-- Requires: A table named Returned_Orders(Order_ID, Status)
+SELECT DISTINCT O.Order_ID, O.Customer_Name, O.Customer_Segment
+FROM KMS_Inventory_Data O
+JOIN dbo.Order_Status R
+    ON O.Order_ID = R.Order_ID
+WHERE R.Status = 'Returned';
+
+-- 11. Average shipping cost by order priority
+SELECT Order_Priority, 
+       CAST(AVG(Shipping_Cost) AS DECIMAL(18,2)) AS Avg_Shipping_Cost
+FROM KMS_Inventory_Data
+GROUP BY Order_Priority
+ORDER BY Avg_Shipping_Cost DESC;
+
+
+
+
+QUERY WITH PRINT OPTION AND 2 DECIMAL PLACES IN RESULT
+
+
+USE KMS_db;
+
+-- Question 1: Product category with the highest sales
+PRINT 'Q1: Product category with the highest sales'
+SELECT Product_Category, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Product_Category
+ORDER BY Total_Sales DESC;
+
+PRINT ''
+PRINT 'Q2: Top 3 regions by sales'
+SELECT TOP 3 Region, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Region
+ORDER BY Total_Sales DESC;
+
+PRINT ''
+PRINT 'Q2: Bottom 3 regions by sales'
+SELECT TOP 3 Region, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Region
+ORDER BY Total_Sales ASC;
+
+PRINT ''
+PRINT 'Q3: Total sales of appliances in Ontario'
+SELECT CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales_Appliances_Ontario
+FROM KMS_Inventory_Data
+WHERE Province = 'Ontario'
+  AND Product_Sub_Category = 'Appliances';
+
+PRINT ''
+PRINT 'Q4: Bottom 10 customers by sales'
+SELECT TOP 10 Customer_Name, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Customer_Name
+ORDER BY Total_Sales ASC;
+
+PRINT ''
+PRINT 'Q5: Shipping method with highest shipping cost'
+SELECT Ship_Mode, 
+       CAST(SUM(Shipping_Cost) AS DECIMAL(18,2)) AS Total_Shipping_Cost
+FROM KMS_Inventory_Data
+GROUP BY Ship_Mode
+ORDER BY Total_Shipping_Cost DESC;
+
+PRINT ''
+PRINT 'Q6a: Top 5 most valuable customers'
+SELECT TOP 5 Customer_Name, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+GROUP BY Customer_Name
+ORDER BY Total_Sales DESC;
+
+PRINT ''
+PRINT 'Q6b: Product categories purchased by top customers'
+SELECT Customer_Name, Product_Category, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Category_Sales
+FROM KMS_Inventory_Data
+WHERE Customer_Name IN (
+    SELECT TOP 5 Customer_Name
+    FROM KMS_Inventory_Data
+    GROUP BY Customer_Name
+    ORDER BY SUM(Sales) DESC
+)
+GROUP BY Customer_Name, Product_Category
+ORDER BY Customer_Name, Category_Sales DESC;
+
+PRINT ''
+PRINT 'Q7: Small Business customer with highest sales'
+SELECT TOP 1 Customer_Name, 
+       CAST(SUM(Sales) AS DECIMAL(18,2)) AS Total_Sales
+FROM KMS_Inventory_Data
+WHERE Customer_Segment = 'Small Business'
+GROUP BY Customer_Name
+ORDER BY Total_Sales DESC;
+
+PRINT ''
+PRINT 'Q8: Corporate customer with most orders (2009–2012)'
+SELECT TOP 1 Customer_Name, 
+       COUNT(Order_ID) AS Total_Orders
+FROM KMS_Inventory_Data
+WHERE Customer_Segment = 'Corporate'
+  AND Order_Date BETWEEN '2009-01-01' AND '2012-12-31'
+GROUP BY Customer_Name
+ORDER BY Total_Orders DESC;
+
+PRINT ''
+PRINT 'Q9: Most profitable Consumer customer'
+SELECT TOP 1 Customer_Name, 
+       CAST(SUM(Profit) AS DECIMAL(18,2)) AS Total_Profit
+FROM KMS_Inventory_Data
+WHERE Customer_Segment = 'Consumer'
+GROUP BY Customer_Name
+ORDER BY Total_Profit DESC;
+
+PRINT ''
+PRINT 'Q10: Returned customers and their segment'
+SELECT DISTINCT O.Order_ID, O.Customer_Name, O.Customer_Segment
+FROM KMS_Inventory_Data O
+JOIN dbo.Returned_Orders R
+    ON O.Order_ID = R.Order_ID
+WHERE R.Status = 'Returned';
+
+PRINT ''
+PRINT 'Q11: Average shipping cost by order priority'
+SELECT Order_Priority, 
+       CAST(AVG(Shipping_Cost) AS DECIMAL(18,2)) AS Avg_Shipping_Cost
+FROM KMS_Inventory_Data
+GROUP BY Order_Priority
+ORDER BY Avg_Shipping_Cost DESC;
+
+
+
+
+
+
+
+
+
