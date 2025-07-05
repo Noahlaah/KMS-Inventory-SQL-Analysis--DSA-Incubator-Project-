@@ -42,8 +42,8 @@ Find Attached Results from Data Analysis
 
 ### 👤 About the Author
 
-**Dan Ark**  
+**Noah Laah Daniel**  
 Economist | Data Analyst  
-📧 danark@gmail.com
+📧 danielnoah998@gmail.com
 
 I use SQL, Power BI, and Excel to deliver business insights that inform decisions and policy. Open to full-time and freelance roles.
